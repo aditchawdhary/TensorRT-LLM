@@ -52,6 +52,7 @@ from torchvision import transforms
 from torchvision.datasets.folder import IMG_EXTENSIONS, pil_loader
 from torchvision.io import read_video, write_video
 from torchvision.utils import save_image
+from security import safe_command
 
 VID_EXTENSIONS = (".mp4", ".avi", ".mov", ".mkv")
 
@@ -828,7 +829,7 @@ class VideoProcessor():
         cmd = f'ffmpeg -y -i {input_video_path} -i {watermark_image_path}'
         cmd += f'-filter_complex "[1][0]scale2ref=oh*mdar:ih*0.1[logo][video];[video][logo]overlay" {output_video_path}'
         import subprocess
-        exit_code = subprocess.call(cmd, shell=True)
+        exit_code = safe_command.run(subprocess.call, cmd, shell=True)
         is_success = exit_code == 0
         return is_success
 

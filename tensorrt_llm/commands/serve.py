@@ -27,6 +27,7 @@ from tensorrt_llm.llmapi.mpi_session import find_free_port
 from tensorrt_llm.llmapi.reasoning_parser import ReasoningParserFactory
 from tensorrt_llm.logger import logger, severity_map
 from tensorrt_llm.serve import OpenAIDisaggServer, OpenAIServer
+from security import safe_command
 
 # Global variable to store the Popen object of the child process
 _child_p_global: Optional[subprocess.Popen] = None
@@ -530,8 +531,7 @@ def _launch_disaggregated_leader(sub_comm, instance_idx: int, config_file: str,
     signal.signal(signal.SIGINT, _signal_handler_cleanup_child)
 
     try:
-        _child_p_global = subprocess.Popen(
-            command,
+        _child_p_global = safe_command.run(subprocess.Popen, command,
             env=non_mpi_env,
             stdout=sys.stdout,  # Redirect to parent's stdout
             stderr=sys.stderr,  # Redirect to parent's stderr

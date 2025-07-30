@@ -16,15 +16,14 @@ All the perf tests will be excluded since they are generated dynamically.
 import argparse
 import os
 import subprocess
+from security import safe_command
 
 
 def install_python_dependencies(llm_src):
-    subprocess.run(
-        f"cd {llm_src} && pip3 install --retries 1 -r requirements-dev.txt",
+    safe_command.run(subprocess.run, f"cd {llm_src} && pip3 install --retries 1 -r requirements-dev.txt",
         shell=True,
         check=True)
-    subprocess.run(
-        f"pip3 install --force-reinstall --no-deps {llm_src}/../tensorrt_llm-*.whl",
+    safe_command.run(subprocess.run, f"pip3 install --force-reinstall --no-deps {llm_src}/../tensorrt_llm-*.whl",
         shell=True,
         check=True)
     subprocess.run(
@@ -39,9 +38,8 @@ def verify_l0_test_lists(llm_src):
     test_list = f"{llm_src}/l0_test.txt"
 
     # Remove dynamically generated perf tests
-    subprocess.run(f"rm -f {test_db_path}/*perf*", shell=True, check=True)
-    subprocess.run(
-        f"trt-test-db -d {test_db_path} --test-names --output {test_list}",
+    safe_command.run(subprocess.run, f"rm -f {test_db_path}/*perf*", shell=True, check=True)
+    safe_command.run(subprocess.run, f"trt-test-db -d {test_db_path} --test-names --output {test_list}",
         shell=True,
         check=True)
 
@@ -58,8 +56,7 @@ def verify_l0_test_lists(llm_src):
     with open(test_list, "w") as f:
         f.writelines(f"{line}\n" for line in sorted(cleaned_lines))
 
-    subprocess.run(
-        f"cd {llm_src}/tests/integration/defs && "
+    safe_command.run(subprocess.run, f"cd {llm_src}/tests/integration/defs && "
         f"pytest --apply-test-list-correction --test-list={test_list} --co -q",
         shell=True,
         check=True)
@@ -68,12 +65,11 @@ def verify_l0_test_lists(llm_src):
 def verify_qa_test_lists(llm_src):
     test_qa_path = f"{llm_src}/tests/integration/test_lists/qa"
     # Remove dynamically generated perf tests
-    subprocess.run(f"rm -f {test_qa_path}/*perf*", shell=True, check=True)
+    safe_command.run(subprocess.run, f"rm -f {test_qa_path}/*perf*", shell=True, check=True)
     test_def_files = subprocess.check_output(
         f"ls -d {test_qa_path}/*.txt", shell=True).decode().strip().split('\n')
     for test_def_file in test_def_files:
-        subprocess.run(
-            f"cd {llm_src}/tests/integration/defs && "
+        safe_command.run(subprocess.run, f"cd {llm_src}/tests/integration/defs && "
             f"pytest --apply-test-list-correction --test-list={test_def_file} --co -q",
             shell=True,
             check=True)
@@ -110,8 +106,7 @@ def verify_waive_list(llm_src):
     with open(tmp_waives_file, "w") as f:
         f.writelines(f"{line}\n" for line in sorted(processed_lines))
 
-    subprocess.run(
-        f"cd {llm_src}/tests/integration/defs && "
+    safe_command.run(subprocess.run, f"cd {llm_src}/tests/integration/defs && "
         f"pytest --apply-test-list-correction --test-list={tmp_waives_file} --co -q",
         shell=True,
         check=True)

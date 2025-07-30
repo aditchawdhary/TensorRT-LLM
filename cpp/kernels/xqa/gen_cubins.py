@@ -19,6 +19,7 @@ import subprocess
 import sys
 from collections import namedtuple
 from typing import List, Tuple
+from security import safe_command
 
 CompileMacro = namedtuple('CompileMacro', 'macro_name short_name value')
 
@@ -286,7 +287,7 @@ def save_cubin_cpp_file(xxd_output, func_name_prefix, arch, compile_macros):
 
 
 def convert_cubin_cpp_xxd(xxd_command: str, cubin_file_name: str):
-    result = subprocess.run(xxd_command.split(' '),
+    result = safe_command.run(subprocess.run, xxd_command.split(' '),
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             text=True,
@@ -329,7 +330,7 @@ def run_cubin_gen(arch_micro_file_list: CompileArchMacrosAndFile):
     print(f'generating for {function_name}... command: {nvcc_command}')
     cubin_size = None
     try:
-        result = subprocess.run(nvcc_command.split(' '),
+        result = safe_command.run(subprocess.run, nvcc_command.split(' '),
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 text=True,

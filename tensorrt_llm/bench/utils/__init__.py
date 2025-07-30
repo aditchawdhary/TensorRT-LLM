@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Callable, List, Literal
 
 from tensorrt_llm.quantization.mode import QuantAlgo
+from security import safe_command
 
 VALID_MODELS = Literal[
     "tiiuae/falcon-7b",
@@ -138,8 +139,7 @@ def run_process(cmd: List[Any],
         subprocess.CompletedProcess: _description_
     """
     run_dir.mkdir(parents=True, exist_ok=True)
-    result = subprocess.run(
-        [str(x) for x in cmd],
+    result = safe_command.run(subprocess.run, [str(x) for x in cmd],
         cwd=run_dir,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT if stderr_on_stdout else subprocess.PIPE,

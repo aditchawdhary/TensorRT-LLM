@@ -16,13 +16,14 @@
 
 import subprocess as sp
 import sys
+from security import safe_command
 
 
 def run_cmd(cmd):
     """Run a command and return output, raising error by default if command fails"""
 
     print(f"Running command: {cmd}")
-    result = sp.run(cmd,
+    result = safe_command.run(sp.run, cmd,
                     shell=True,
                     stdout=sp.PIPE,
                     text=True,

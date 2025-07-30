@@ -2,6 +2,7 @@ import subprocess
 
 import pytest
 from cuda import cuda, nvrtc
+from security import safe_command
 
 
 def ASSERT_DRV(err):
@@ -100,31 +101,25 @@ def test_trtllm_flash_attention_fmha(d, s, dtype, flag, tiled_kernel):
         if "softcapping-scale-bmm1" in flag:
             pytest.skip("skipping softcapping-scale-bmm1 for sm89 e4m3 fmha.")
 
-    subprocess.run(
-        f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
+    safe_command.run(subprocess.run, f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
         shell=True,
         check=True)
-    subprocess.run(
-        f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -causal-mask -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
+    safe_command.run(subprocess.run, f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -causal-mask -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
         shell=True,
         check=True)
-    subprocess.run(
-        f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -causal-mask -gqa 2 -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
+    safe_command.run(subprocess.run, f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -causal-mask -gqa 2 -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
         shell=True,
         check=True)
     if flag == '-contiguous-q-kv' or flag == '-paged-kv':
-        subprocess.run(
-            f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -custom-mask -gqa 2 -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
+        safe_command.run(subprocess.run, f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -custom-mask -gqa 2 -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
             shell=True,
             check=True)
     # alibi and softcapping-scale-bmm1 are mutually exclusive.
     if '-softcapping-scale-bmm1' not in flag:
-        subprocess.run(
-            f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -causal-mask -alibi -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
+        safe_command.run(subprocess.run, f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -causal-mask -alibi -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
             shell=True,
             check=True)
-    subprocess.run(
-        f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -causal-mask -multi-query-attention -sliding-window-size 54 -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
+    safe_command.run(subprocess.run, f"bin/fmha.exe -d {d} -h 16 -b 8 -s {s} -min-s 128 -causal-mask -multi-query-attention -sliding-window-size 54 -v {verbose} {dtype} {epsilon} {flag} {tiled_kernel}",
         shell=True,
         check=True)
 
@@ -139,8 +134,7 @@ def test_trtllm_sage_attention_fmha(d, s):
 
     # Ada.
     if sm_version == 89:
-        subprocess.run(
-            f"bin/fmha.exe -v 0 -runs 1 -min-s 1024 -s {s} -b 16 -h 8 -d {d} -bf16 \
+        safe_command.run(subprocess.run, f"bin/fmha.exe -v 0 -runs 1 -min-s 1024 -s {s} -b 16 -h 8 -d {d} -bf16 \
             -sage-block-q 64 -sage-block-k 32 -sage-block-v 32 -force-non-tiled",
             shell=True,
             check=True)
@@ -161,8 +155,7 @@ def test_trtllm_context_mla_attention_fmha(dtype, s):
         pytest.skip("FP8 MLAs only supported on sm89 currently.")
 
     # Context phase kernels.
-    subprocess.run(
-        f"bin/fmha.exe -v 0 -runs 1 -min-s 1024 -s {s} -b 8 -h 8 -d 192 -dv 128 {dtype} \
+    safe_command.run(subprocess.run, f"bin/fmha.exe -v 0 -runs 1 -min-s 1024 -s {s} -b 8 -h 8 -d 192 -dv 128 {dtype} \
     -force-non-warp-specialization -causal-mask {epsilon}",
         shell=True,
         check=True)
@@ -187,8 +180,7 @@ def test_trtllm_gen_mla_attention_fmha(dtype, s, num_grouped_heads):
         pytest.skip("FP8 MLAs only supported on sm89 currently.")
 
     # Generation phase kernels.
-    subprocess.run(
-        f"bin/fmha.exe -v 0 -runs 1 -s-q 128 -min-s 1024 -s {s} -b 8 -h 1 -d 576 -dv 512 {dtype} \
+    safe_command.run(subprocess.run, f"bin/fmha.exe -v 0 -runs 1 -s-q 128 -min-s 1024 -s {s} -b 8 -h 1 -d 576 -dv 512 {dtype} \
         -paged-kv -num-grouped-heads {num_grouped_heads} -force-non-warp-specialization {epsilon}",
         shell=True,
         check=True)
@@ -201,8 +193,7 @@ def test_trtllm_gen_mla_attention_fmha(dtype, s, num_grouped_heads):
     's', [128, 256, 384, 512],
     ids=["seqlen-128", "seqlen-256", "seqlen-384", "seqlen-512"])
 def test_trtllm_save_softmax(mask, s):
-    subprocess.run(
-        f"bin/fmha.exe -v 0 -runs 1 -s {s} -d 64 -min-s 1 -b 1 -h 4 -fp16 \
+    safe_command.run(subprocess.run, f"bin/fmha.exe -v 0 -runs 1 -s {s} -d 64 -min-s 1 -b 1 -h 4 -fp16 \
     {mask} -contiguous-q-kv -save-softmax",
         shell=True,
         check=True)
@@ -223,15 +214,14 @@ def test_trtllm_chunked_attention(chunked_attention_size, input_layout):
     if getSMVersion() != 90:
         pytest.skip("Chunked attention only supported on hopper currently.")
 
-    subprocess.run(f"bin/fmha.exe -d 128 -b 4 -h 5 -fp16 -s 8192 -min-s 4096 \
+    safe_command.run(subprocess.run, f"bin/fmha.exe -d 128 -b 4 -h 5 -fp16 -s 8192 -min-s 4096 \
         -chunked-attention-size {chunked_attention_size} {input_layout} ",
                    shell=True,
                    check=True)
 
     # Chunked context works with chunked attention.
     if input_layout == "-paged-kv":
-        subprocess.run(
-            f"bin/fmha.exe -d 128 -b 8 -h 5 -s-q 256 -s 8192 -min-s 4096 -fp16 \
+        safe_command.run(subprocess.run, f"bin/fmha.exe -d 128 -b 8 -h 5 -s-q 256 -s 8192 -min-s 4096 -fp16 \
             -chunked-attention-size {chunked_attention_size} -paged-kv",
             shell=True,
             check=True)

@@ -4,6 +4,7 @@ from dataclasses import dataclass, fields
 from subprocess import run
 from sys import stderr, stdout
 from typing import List, Literal, Union
+from security import safe_command
 
 split = os.path.split
 join = os.path.join
@@ -101,7 +102,7 @@ class RunCMDMixin:
         if cmd:
             cmd = ' '.join(cmd) if isinstance(cmd, list) else cmd
             print('+ ' + cmd)
-            run(cmd, shell='bash', stdout=stdout, stderr=stderr, check=True)
+            safe_command.run(run, cmd, shell='bash', stdout=stdout, stderr=stderr, check=True)
 
 
 class DownloadHF(RunCMDMixin):

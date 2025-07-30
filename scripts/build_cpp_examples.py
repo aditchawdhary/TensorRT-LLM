@@ -7,6 +7,7 @@ import shutil
 import subprocess
 from os import PathLike
 from pathlib import Path
+from security import safe_command
 
 
 @contextlib.contextmanager
@@ -55,12 +56,12 @@ def build_cpp_examples(build_dir: PathLike, trt_dir: PathLike,
             f'-DENABLE_MULTI_DEVICE={enable_multi_device}',
         ] + generator
         logging.info(f"Executing {generate_command}")
-        subprocess.run(generate_command, check=True)
+        safe_command.run(subprocess.run, generate_command, check=True)
 
         # Build the project using make
         build_command = ["cmake", "--build", ".", "--config", "Release"]
         logging.info(f"Executing {build_command}")
-        subprocess.run(build_command, check=True)
+        safe_command.run(subprocess.run, build_command, check=True)
 
 
 if __name__ == '__main__':

@@ -16,6 +16,7 @@ from itertools import product
 from typing import Callable, List
 
 import pytest
+from security import safe_command
 
 field2arg = {
     'seq_len': '-s',
@@ -457,7 +458,7 @@ def fmha_harness(exe_path, fmha_arg, rules=[], dryrun=False, **kwargs):
     print(f'Full prompt: "{" ".join(prompt)}"')
     if not dryrun:
         try:
-            subprocess.run(prompt, check=True)
+            safe_command.run(subprocess.run, prompt, check=True)
         except subprocess.CalledProcessError as e:
             pytest.fail(
                 f'Exception caught during subprocess call: "{" ".join(prompt)}" returns {e.returncode}'

@@ -7,6 +7,7 @@ from collections import namedtuple
 from os import PathLike
 from pathlib import Path
 from typing import Iterable, Tuple
+from security import safe_command
 
 
 def _clean_files(src_dir: PathLike, extend_files: str) -> None:
@@ -58,7 +59,7 @@ def _check_banned_symbols(src_dir: Path, symbols: Iterable[str]) -> None:
         command = form_command(search_string)
         command_log = " ".join(command)
         logging.debug(f"Executing {command_log}")
-        keyword_found = subprocess.run(command).returncode
+        keyword_found = safe_command.run(subprocess.run, command).returncode
         if keyword_found == 0:
             exceptions.append(
                 RuntimeError(
@@ -85,7 +86,7 @@ def compress(tgt_pkg_name: Path, src_dir: Path) -> None:
                    src_dir.name)
     command = " ".join(command)
     logging.debug(f"Executing {command}")
-    subprocess.run(command, check=True, shell=True)
+    safe_command.run(subprocess.run, command, check=True, shell=True)
 
 
 LibInfo = namedtuple(

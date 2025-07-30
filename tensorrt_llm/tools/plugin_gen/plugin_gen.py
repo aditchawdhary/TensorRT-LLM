@@ -9,6 +9,7 @@ import subprocess  # nosec B404
 import sys
 from dataclasses import dataclass
 from typing import ClassVar, Iterable, List, Optional, Tuple, Union
+from security import safe_command
 
 try:
     import triton
@@ -309,7 +310,7 @@ def _rmdir(path: str):
 
 def _run_command(args, cwd=None):
     print(f"Running command: {' '.join(args)}")
-    subprocess.run(args, check=True, cwd=cwd)
+    safe_command.run(subprocess.run, args, check=True, cwd=cwd)
 
 
 def parse_arguments():

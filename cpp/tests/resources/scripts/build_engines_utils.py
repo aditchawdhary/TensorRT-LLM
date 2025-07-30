@@ -19,6 +19,7 @@ import os as _os
 import pathlib as _pl
 import subprocess as _sp
 import typing as _tp
+from security import safe_command
 
 
 def run_command(command: _tp.Sequence[str],
@@ -50,7 +51,7 @@ def wincopy(source: str, dest: str, isdir: bool, cwd=None) -> None:
               (str(cwd or _pl.Path.cwd()), " ".join(copy_cmd)))
 
         # Run the command from the specified directory
-        result = _sp.run(copy_cmd, cwd=cwd)
+        result = safe_command.run(_sp.run, copy_cmd, cwd=cwd)
 
         # Check for valid exit code
         if result.returncode < 8:

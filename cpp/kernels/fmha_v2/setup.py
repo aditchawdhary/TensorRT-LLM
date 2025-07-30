@@ -13,6 +13,7 @@ import subprocess
 from collections import namedtuple
 from enum import IntEnum
 from itertools import product
+from security import safe_command
 
 sm2name = {
     70: 'volta',
@@ -3570,7 +3571,7 @@ def generate_files(specs_names):
         cmd[0] = os.environ['CUDA_PATH'] + '/bin/' + cmd[0]
     print('Running command "{}" to build "bin/print_traits.exe":'.format(
         ' '.join(cmd)))
-    process = subprocess.Popen(cmd,
+    process = safe_command.run(subprocess.Popen, cmd,
                                stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE)
     output, error = process.communicate()

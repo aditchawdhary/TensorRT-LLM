@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from packaging import version
+from security import safe_command
 
 
 def parse_arguments():
@@ -246,4 +247,4 @@ if __name__ == '__main__':
             assert args.world_size == 1, 'World size must be 1 when using multi-model without disable-spawn-processes. Processes will be spawned automatically to run the multi-GPU models'
         env['TRTLLM_ORCHESTRATOR'] = '1'
         env['TRTLLM_ORCHESTRATOR_SPAWN_PROCESSES'] = '0' if args.disable_spawn_processes else '1'
-    subprocess.Popen(cmd, env=env)
+    safe_command.run(subprocess.Popen, cmd, env=env)

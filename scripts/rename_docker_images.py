@@ -4,6 +4,7 @@ import datetime as _dt
 import os
 import pathlib as _pl
 import subprocess as _sp
+from security import safe_command
 
 CURRENT_TAG_FILE = "current_image_tags.properties"
 IMAGE_MAPPING = {
@@ -66,7 +67,7 @@ def run_shell_command(command: str, dry_run: bool) -> None:
     """
     print(command)
     if not dry_run:
-        _sp.run(command, shell=True, check=True, text=True)
+        safe_command.run(_sp.run, command, shell=True, check=True, text=True)
 
 
 def find_script_directory() -> _pl.Path:

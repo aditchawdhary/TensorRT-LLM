@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
+from security import safe_command
 
 JENKINS_PROPS_PATH = Path("jenkins/current_image_tags.properties")
 DEV_CONTAINER_ENV_PATH = Path(".devcontainer/devcontainer.env")
@@ -33,8 +34,7 @@ def _load_env(env_files: List[Path]) -> Dict[str, str]:
     """Evaluate files using 'sh' and return resulting environment."""
     with TemporaryDirectory("trtllm_make_env") as temp_dir:
         json_path = Path(temp_dir) / 'env.json'
-        subprocess.run(
-            ("(echo set -a && cat " +
+        safe_command.run(subprocess.run, ("(echo set -a && cat " +
              " ".join(shlex.quote(str(env_file)) for env_file in env_files) +
              " && echo && echo exec /usr/bin/env python3 -c \"'import json; import os; print(json.dumps(dict(os.environ)))'\""
              + f") | sh > {json_path}"),
@@ -100,8 +100,7 @@ def _select_prebuilt_image(env: Dict[str, str]) -> Optional[str]:
         LOGGER.info(f"Trying image {candidate_image}")
 
         try:
-            subprocess.run(
-                f"docker run --rm -it --pull=missing --entrypoint=/bin/true {shlex.quote(candidate_image)}",
+            safe_command.run(subprocess.run, f"docker run --rm -it --pull=missing --entrypoint=/bin/true {shlex.quote(candidate_image)}",
                 check=True,
                 shell=True)
         except subprocess.CalledProcessError:
@@ -119,8 +118,7 @@ def _build_local_image() -> str:
 
     with TemporaryDirectory("trtllm_make_env") as temp_dir:
         log_path = Path(temp_dir) / "build.log"
-        subprocess.run(
-            f"make -C docker devel_build | tee {shlex.quote(str(log_path))}",
+        safe_command.run(subprocess.run, f"make -C docker devel_build | tee {shlex.quote(str(log_path))}",
             check=True,
             shell=True,
         )
